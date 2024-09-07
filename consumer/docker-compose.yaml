@@ -1,0 +1,39 @@
+version: "3.7"
+
+services:
+
+      filter-1: 
+          build: 
+            context: ./FilterConsumer
+
+          environment: 
+              - KAFKA_BROKER= kafka-1:19092,kafka-2:19093,kafka-3:19094
+              - SPARK_BROKER= spark://spark-master:7077
+              - ENABLE_CHECKPOINT= false 
+              - KAFKA_PROCESSED_TOPIC= Filtered_Results
+              - ENABLE_CHECKPOINT= true 
+              - CHECKPOINT_LOCATION= /tmp/checkpoint
+              - CONSUMER_GROUP= filter
+              - KEYWORDS= ${KEYWORDS}
+              - KAFKA_TOPICS= ${KAFKA_TOPICS}
+          networks:
+            - scrape-net 
+
+      database-consumer:
+          build:
+            context: ./database_consumer
+
+          environment:
+              - KAFKA_BROKER= "kafka:19092,kafka:19093,kafka:19094"
+              - SPARK_BROKER= "spark://spark-master:7077"
+              - KAFKA_PROCESSED_TOPIC= "Filtered_Results"
+              - DATABASE_HOST= "db"
+              - DATABASE_PORT= "5432"
+              - DATABASE_USER= "root"
+              - DATABASE_PASSWORD= "password"
+              - DATABASE_DB= "DBT"
+
+networks:
+  scrape-net:
+    name: scrape-net
+    external: true
